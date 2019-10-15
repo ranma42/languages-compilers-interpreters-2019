@@ -1,0 +1,3 @@
+"Hello,\n\tWorld!"
+"Test escapes:\t\\\"\'"
+"A\x42\103\n"
