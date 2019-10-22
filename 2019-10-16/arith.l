@@ -6,7 +6,7 @@
 %%
 
 [0-9]+        { yylval = atoi(yytext); return VAL; }
-[-+*/]      return *yytext;
+[-+*/\n]      return *yytext;
 [[:space:]]   /* ignore */
 .             return *yytext;
 

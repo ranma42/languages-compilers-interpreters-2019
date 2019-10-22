@@ -13,7 +13,7 @@
 
 %%
 
-program: program expr { printf("%d\n", $2); }
+program: program expr '\n' { printf("%d\n", $2); }
   |
   ;
 
