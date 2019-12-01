@@ -24,6 +24,7 @@
 %token LIT_TRUE LIT_FALSE
 %type <e> expr
 
+%right IN_KW
 %left '&' '|'
 %nonassoc '<' '>' LE GE '=' NE
 %left '+' '-'
