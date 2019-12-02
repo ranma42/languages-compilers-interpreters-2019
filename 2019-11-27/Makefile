@@ -12,7 +12,7 @@ scanner.o: parser.c
 ast.o: parser.c
 
 eval: scanner.o parser.o ast.o
-	$(CXX) $(LLVM_LINK_FLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(LLVM_LINK_FLAGS)
 
 clean:
 	rm -f eval ast.o scanner.o parser.o parser.c y.tab.h
