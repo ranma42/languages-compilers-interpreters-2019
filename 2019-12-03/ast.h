@@ -6,6 +6,8 @@ enum expr_type {
   LIT_BOOL,
   IDENT,
   LET,
+  VAR,
+  ASSIGN,
   IF,
   CALL,
   WHILE,
@@ -38,6 +40,17 @@ struct expr {
     } let;
 
     struct {
+      char *ident;
+      struct expr *expr;
+      struct expr *body;
+    } var;
+
+    struct {
+      char *ident;
+      struct expr *expr;
+    } assign;
+
+    struct {
       struct expr *cond;
       struct expr *e_true;
       struct expr *e_false;
@@ -66,6 +79,8 @@ struct expr *make_bool(int value);
 struct expr *make_identifier(char *ident);
 struct expr *make_call(char *ident, struct expr *expr);
 struct expr *make_let(char *ident, struct expr *expr, struct expr *body);
+struct expr *make_var(char *ident, struct expr *expr, struct expr *body);
+struct expr *make_assign(char *ident, struct expr *expr);
 struct expr *make_if(struct expr *cond, struct expr *e_true, struct expr *e_false);
 struct expr *make_while(struct expr *cond, struct expr *body);
 struct expr *make_un_op(int op, struct expr *expr);

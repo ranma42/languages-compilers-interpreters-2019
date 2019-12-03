@@ -10,6 +10,7 @@ then                   return THEN_KW;
 else                   return ELSE_KW;
 while                  return WHILE_KW;
 do                     return DO_KW;
+var                    return VAR_KW;
 let                    return LET_KW;
 in                     return IN_KW;
 true                   return LIT_TRUE;
@@ -20,6 +21,7 @@ false                  return LIT_FALSE;
 \<=                    return LE;
 \>=                    return GE;
 !=                     return NE;
+:=                     return ASSIGN_OP;
 [[:space:]]            /* ignore */
 .                      return *yytext;
 

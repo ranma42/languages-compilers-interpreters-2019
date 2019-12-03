@@ -58,6 +58,27 @@ struct expr *make_let(char *ident, struct expr *expr, struct expr *body) {
   return e;
 }
 
+struct expr *make_var(char *ident, struct expr *expr, struct expr *body) {
+  struct expr *e = malloc(sizeof(struct expr));
+
+  e->type = VAR;
+  e->var.ident = ident;
+  e->var.expr = expr;
+  e->var.body = body;
+
+  return e;
+}
+
+struct expr *make_assign(char *ident, struct expr *expr) {
+  struct expr *e = malloc(sizeof(struct expr));
+
+  e->type = ASSIGN;
+  e->assign.ident = ident;
+  e->assign.expr = expr;
+
+  return e;
+}
+
 struct expr *make_if(struct expr *cond, struct expr *e_true,
                      struct expr *e_false) {
   struct expr *e = malloc(sizeof(struct expr));
@@ -122,6 +143,17 @@ void free_expr(struct expr *e) {
     free_expr(e->let.body);
     break;
 
+  case VAR:
+    free(e->var.ident);
+    free_expr(e->var.expr);
+    free_expr(e->var.body);
+    break;
+
+  case ASSIGN:
+    free(e->assign.ident);
+    free_expr(e->assign.expr);
+    break;
+
   case IF:
     free_expr(e->if_expr.cond);
     free_expr(e->if_expr.e_true);
@@ -181,8 +213,39 @@ LLVMValueRef codegen_expr(
     return body;
   }
 
+  case VAR: {
+    LLVMBasicBlockRef current_bb = LLVMGetInsertBlock(builder);
+    LLVMValueRef f = LLVMGetBasicBlockParent(current_bb);
+    LLVMBasicBlockRef entry_bb = LLVMGetEntryBasicBlock(f);
+    LLVMValueRef expr = codegen_expr(e->var.expr, env, module, builder);
+
+    // create the cell in the entry basic block of the function
+    LLVMPositionBuilder(builder, entry_bb, LLVMGetFirstInstruction(entry_bb));
+    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMTypeOf(expr), "");
+
+    // return to the old builder position and continue from there
+    LLVMPositionBuilderAtEnd(builder, current_bb);
+    LLVMBuildStore(builder, expr, pointer);
+
+    struct env *new_env = push(env, e->var.ident, pointer);
+    LLVMValueRef body = codegen_expr(e->var.body, new_env, module, builder);
+    pop(new_env);
+    return body;
+  }
+
+  case ASSIGN: {
+    LLVMValueRef expr = codegen_expr(e->var.expr, env, module, builder);
+    LLVMValueRef pointer = resolve(env, e->assign.ident);
+    return LLVMBuildStore(builder, expr, pointer);
+  }
+
   case IDENT: {
-    return resolve(env, e->ident);
+    LLVMValueRef val = resolve(env, e->ident);
+    if (LLVMGetTypeKind(LLVMTypeOf(val)) == LLVMPointerTypeKind) {
+      return LLVMBuildLoad(builder, val, "");
+    } else {
+      return val;
+    }
   }
 
   case IF: {

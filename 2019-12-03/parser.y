@@ -16,7 +16,7 @@
 
 %token <ident> IDENTIFIER
 %token <lit_value> VAL
-%token LET_KW IN_KW
+%token LET_KW IN_KW VAR_KW
 %token IF_KW THEN_KW ELSE_KW
 %token WHILE_KW DO_KW
 %token LIT_TRUE LIT_FALSE
@@ -25,6 +25,7 @@
 %right DO_KW
 %right ELSE_KW
 %right IN_KW
+%nonassoc ASSIGN_OP
 %left '&' '|'
 %nonassoc '<' '>' LE GE '=' NE
 %left '+' '-'
@@ -47,6 +48,12 @@ expr: VAL { $$ = make_val($1); }
 
       | LET_KW IDENTIFIER '=' expr IN_KW expr
                       { $$ = make_let($2, $4, $6); }
+
+      | VAR_KW IDENTIFIER '=' expr IN_KW expr
+                      { $$ = make_var($2, $4, $6); }
+
+      | IDENTIFIER ASSIGN_OP expr
+                      { $$ = make_assign($1, $3); }
 
       | IDENTIFIER '(' expr ')'
                       { $$ = make_call($1, $3); }
