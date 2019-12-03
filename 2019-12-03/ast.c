@@ -1,3 +1,5 @@
+#include <llvm-c/Analysis.h>
+#include <llvm-c/ExecutionEngine.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -253,4 +255,70 @@ LLVMValueRef codegen_expr(
   }
     return NULL;
   }
+}
+
+void jit_eval(struct expr *expr) {
+  LLVMModuleRef module = LLVMModuleCreateWithName("exe");
+  LLVMBuilderRef builder = LLVMCreateBuilder();
+  LLVMExecutionEngineRef engine;
+
+  LLVMTypeRef print_i32_args[] = {LLVMInt32Type()};
+  LLVMAddFunction(module, "print_i32",
+                  LLVMFunctionType(LLVMVoidType(), print_i32_args, 1, 0));
+
+  LLVMInitializeNativeTarget();
+  LLVMInitializeNativeAsmPrinter();
+  LLVMInitializeNativeAsmParser();
+  LLVMLinkInMCJIT();
+
+  char *error;
+  if (LLVMCreateExecutionEngineForModule(&engine, module, &error)) {
+    fprintf(stderr, "%s\n", error);
+    return;
+  }
+
+  // LLVM can only emit instructions in basic blocks
+  //   basic blocks are always part of a function
+  //   function are contained in modules
+
+  // visit expression to get its LLVM type
+  LLVMTypeRef bad_f_type = LLVMFunctionType(LLVMVoidType(), NULL, 0, 0);
+  LLVMValueRef typing_f = LLVMAddFunction(module, "typing_f", bad_f_type);
+  LLVMBasicBlockRef typing_entry_bb = LLVMAppendBasicBlock(typing_f, "entry");
+  LLVMPositionBuilderAtEnd(builder, typing_entry_bb);
+  LLVMValueRef typing_ret = codegen_expr(expr, NULL, module, builder);
+  LLVMBuildRetVoid(builder);
+  LLVMTypeRef type = LLVMTypeOf(typing_ret);
+  LLVMDeleteFunction(typing_f);
+
+  // emit expression as function body
+  LLVMTypeRef actual_f_type = LLVMFunctionType(type, NULL, 0, 0);
+  LLVMValueRef f = LLVMAddFunction(module, "f", actual_f_type);
+  LLVMBasicBlockRef entry_bb = LLVMAppendBasicBlock(f, "entry");
+  LLVMPositionBuilderAtEnd(builder, entry_bb);
+  LLVMValueRef ret = codegen_expr(expr, NULL, module, builder);
+
+  // return the result and terminate the function
+  if (LLVMGetTypeKind(type) == LLVMVoidTypeKind) {
+    LLVMBuildRetVoid(builder);
+  } else {
+    LLVMBuildRet(builder, ret);
+  }
+
+  LLVMDumpValue(f);
+
+  LLVMVerifyModule(module, LLVMAbortProcessAction, &error);
+
+  fprintf(stderr, "running...\n");
+  LLVMGenericValueRef result = LLVMRunFunction(engine, f, 0, NULL);
+
+  if (LLVMGetTypeKind(type) == LLVMVoidTypeKind) {
+    printf("-> done\n");
+  } else {
+    printf("-> %d\n", (int)LLVMGenericValueToInt(result, 0));
+  }
+  LLVMDisposeGenericValue(result);
+
+  LLVMDisposeBuilder(builder);
+  LLVMDisposeExecutionEngine(engine);
 }

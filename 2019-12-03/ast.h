@@ -77,3 +77,4 @@ LLVMValueRef codegen_expr(
   LLVMModuleRef module,
   LLVMBuilderRef builder
 );
+void jit_eval(struct expr *e);
