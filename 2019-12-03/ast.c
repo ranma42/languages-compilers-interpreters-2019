@@ -266,11 +266,18 @@ LLVMValueRef codegen_expr(
     LLVMBuildBr(builder, cont_bb);
 
     LLVMPositionBuilderAtEnd(builder, cont_bb);
-    LLVMValueRef phi = LLVMBuildPhi(builder, LLVMTypeOf(then_val), "");
-    LLVMValueRef values[] = { then_val, else_val };
-    LLVMBasicBlockRef blocks[] = { then_bb, else_bb };
-    LLVMAddIncoming(phi, values, blocks, 2);
-    return phi;
+
+    LLVMTypeRef type = LLVMTypeOf(then_val);
+
+    if (LLVMGetTypeKind(type) == LLVMVoidTypeKind) {
+      return then_val; // void value, just return any expr of the appropriate type
+    } else {
+      LLVMValueRef phi = LLVMBuildPhi(builder, type, "");
+      LLVMValueRef values[] = {then_val, else_val};
+      LLVMBasicBlockRef blocks[] = {then_bb, else_bb};
+      LLVMAddIncoming(phi, values, blocks, 2);
+      return phi;
+    }
   }
 
   case WHILE: {
@@ -290,7 +297,7 @@ LLVMValueRef codegen_expr(
     LLVMBuildBr(builder, cond_bb);
 
     LLVMPositionBuilderAtEnd(builder, cont_bb);
-    return ret;
+    return ret; // return a void expression
   }
 
   case UN_OP: {
