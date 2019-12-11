@@ -83,6 +83,7 @@ expr: VAL { $$ = make_val($1); }
       | expr '|' expr { $$ = make_bin_op($1, '|', $3); }
 
       | '(' expr ')'  { $$ = $2; }
+      | '\n' expr { $$ = $2; }
 
 %%
 
