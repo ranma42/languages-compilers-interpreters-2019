@@ -8,8 +8,8 @@ void print_i32(int x)
   printf("%d\n", x);
 }
 
-int read_i32() {
-  int x;
+int read_i32(int defaultValue) {
+  int x = defaultValue;
   scanf("%d", &x);
   return x;
 }

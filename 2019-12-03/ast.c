@@ -325,9 +325,13 @@ void jit_eval(struct expr *expr) {
   LLVMBuilderRef builder = LLVMCreateBuilder();
   LLVMExecutionEngineRef engine;
 
-  LLVMTypeRef print_i32_args[] = {LLVMInt32Type()};
+  LLVMTypeRef one_i32_arg[] = {LLVMInt32Type()};
   LLVMAddFunction(module, "print_i32",
-                  LLVMFunctionType(LLVMVoidType(), print_i32_args, 1, 0));
+                  LLVMFunctionType(LLVMVoidType(), one_i32_arg, 1, 0));
+
+  LLVMTypeRef print_i32_args[] = {LLVMInt32Type()};
+  LLVMAddFunction(module, "read_i32",
+                  LLVMFunctionType(LLVMInt32Type(), one_i32_arg, 1, 0));
 
   LLVMInitializeNativeTarget();
   LLVMInitializeNativeAsmPrinter();
