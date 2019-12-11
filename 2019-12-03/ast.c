@@ -260,10 +260,12 @@ LLVMValueRef codegen_expr(
     LLVMPositionBuilderAtEnd(builder, then_bb);
     LLVMValueRef then_val = codegen_expr(e->if_expr.e_true, env, module, builder);
     LLVMBuildBr(builder, cont_bb);
+    then_bb = LLVMGetInsertBlock(builder);
 
     LLVMPositionBuilderAtEnd(builder, else_bb);
     LLVMValueRef else_val = codegen_expr(e->if_expr.e_false, env, module, builder);
     LLVMBuildBr(builder, cont_bb);
+    else_bb = LLVMGetInsertBlock(builder);
 
     LLVMPositionBuilderAtEnd(builder, cont_bb);
 
