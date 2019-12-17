@@ -210,10 +210,11 @@ LLVMValueRef codegen_expr(
   }
 
   case VAR: {
+    LLVMValueRef expr = codegen_expr(e->var.expr, env, module, builder);
+
     LLVMBasicBlockRef current_bb = LLVMGetInsertBlock(builder);
     LLVMValueRef f = LLVMGetBasicBlockParent(current_bb);
     LLVMBasicBlockRef entry_bb = LLVMGetEntryBasicBlock(f);
-    LLVMValueRef expr = codegen_expr(e->var.expr, env, module, builder);
 
     // create the cell in the entry basic block of the function
     LLVMPositionBuilder(builder, entry_bb, LLVMGetFirstInstruction(entry_bb));
