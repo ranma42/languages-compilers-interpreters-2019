@@ -3,7 +3,7 @@
   #include "ast.h"
 
   int yylex(void);
-  void yyerror(char *s) {
+  void yyerror(const char *s) {
     fprintf(stderr, "%s\n", s);
   }
 %}

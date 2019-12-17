@@ -6,10 +6,6 @@
 #include "ast.h"
 #include "y.tab.h"
 
-static int reg_index = 0;
-
-static int gen_reg() { return reg_index++; }
-
 struct expr *make_val(int value) {
   struct expr *e = malloc(sizeof(struct expr));
 
@@ -323,8 +319,11 @@ LLVMValueRef codegen_expr(
     case NE: return LLVMBuildICmp(builder, LLVMIntNE, lhs, rhs, "");
     case '&': return LLVMBuildAnd(builder, lhs, rhs, "");
     case '|': return LLVMBuildOr(builder, lhs, rhs, "");
+    default: return NULL;
     }
   }
+
+  default:
     return NULL;
   }
 }
@@ -338,7 +337,6 @@ void jit_eval(struct expr *expr) {
   LLVMAddFunction(module, "print_i32",
                   LLVMFunctionType(LLVMVoidType(), one_i32_arg, 1, 0));
 
-  LLVMTypeRef print_i32_args[] = {LLVMInt32Type()};
   LLVMAddFunction(module, "read_i32",
                   LLVMFunctionType(LLVMInt32Type(), one_i32_arg, 1, 0));
 

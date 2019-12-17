@@ -9,9 +9,12 @@ void print_i32(int x)
 }
 
 int read_i32(int defaultValue) {
-  int x = defaultValue;
-  scanf("%d", &x);
-  return x;
+  int x;
+  if (scanf("%d", &x)) {
+    return x;
+  } else {
+    return defaultValue;
+  }
 }
 
 LLVMValueRef resolve(struct env *env, char *name) {
