@@ -217,7 +217,7 @@ LLVMValueRef codegen_expr(
 
     // create the cell in the entry basic block of the function
     LLVMPositionBuilder(builder, entry_bb, LLVMGetFirstInstruction(entry_bb));
-    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMTypeOf(expr), "");
+    LLVMValueRef pointer = LLVMBuildAlloca(builder, LLVMTypeOf(expr), e->var.ident);
 
     // return to the old builder position and continue from there
     LLVMPositionBuilderAtEnd(builder, current_bb);
